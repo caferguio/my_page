@@ -1,0 +1,736 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+        "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+ <meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">
+ <title>"HTML validation" is just a tool</title>
+ <link rel="stylesheet" type="text/css" href="../basic.css">
+ <link rel="stylesheet" type="text/css" href="../cfonts.css">
+<style type="text/css">
+.indent { margin-left: 3ex; }
+/*em { padding-right: 0.1em; }*/
+.minitoc { width: auto; }
+.icon { background: white;
+        color: black;
+        font-family: Verdana, sans-serif;
+        font-weight: 600;
+        font-size: 105%;
+        width: 5.8em;
+        float: left;
+        padding: 0.2em 0.4em;
+        margin: 0 0.5em 0.2em 0;
+        border: double red 0.4em; } 
+blockquote.par1 p { margin: 0; }
+blockquote p.last { margin-bottom: 0; }
+blockquote h2#results { background: #c33; color: white; text-align: center;
+font-size: 150%; font-weight: normal;}
+blockquote h2 { background: white; color: black; text-align: left;
+font-weight: bold; font-size: 160%; margin:0;}
+</style>
+</head>
+<body>
+
+<h1>&#8220;HTML validation&#8221; is a good tool, but just a tool</h1>
+
+<div class="minitoc">
+Content:
+<ul>
+<li><a href="#formal">Validation is formal</a></li>
+<li><a href="#doctype">The DOCTYPE confusion</a></li>
+<li><a href="#gain">So what do I get from validation?</a></li>
+<li><a href="#good">Valid documents can be wrong</a></li>
+<li><a href="#icon">Say <em>no</em> to &#8220;Valid HTML&#8221; icons</a></li>
+<li><a href="#final" title=
+"Why do I nitpick about validation">Some final notes</a></li>
+<li><a href="#html5">But what about HTML5?</a>
+</ul>
+</div>
+
+<p class="em"><em>This is a rant that 
+both promotes validation and puts it down.
+The point is that if you don&#8217;t know what validation
+<em>really</em> is, it won&#8217;t be of much use to you,
+and could even be waste
+of time. Validation is simply a way of getting reports about
+com­ply­ing with some formal rules. What would you do with the results
+if you don&#8217;t know those rules?</em></p>
+
+<p>This document comments on &#8220;HTML validation&#8221;
+as performed by software such as the online services
+<a href="http://validator.w3.org">W3C Validator</a>
+and
+<a href="http://www.htmlhelp.com/validator/">WDG Validator</a>, and
+<a href="http://www.arealvalidator.com/">A Real Validator</a>,
+a product for offline use on Windows.
+&#8220;CSS validation&#8221; will be briefly discussed too.</p>
+
+<h2 id="formal">Validation is formal</h2>
+
+<p>To be exact, there is no such thing as 
+&#8220;HTML validation&#8221;. The concept of validation that matters
+here is SGML or XML validation.
+SGML is a meta-notation used to define
+the formal &#8220;syntax&#8221; rules of various markup notations, or
+markup &#8220;languages&#8221;, to use the common misnomer. All
+that an SGML validator does is that it reads a formalized syntax
+definition (called DTD, Document Type Definition) and a document that
+purports to comply with that definition, then reports
+any mismatches.</p>
+
+<p>Consider the following <strong>example</strong> of a DTD:</p>
+<blockquote>
+<div><code>&lt;!ELEMENT list   - - (item)+&gt;</code></div>
+<div><code>&lt;!ELEMENT item   - - (person, phone)&gt;</code></div>
+<div><code>&lt;!ELEMENT person - - CDATA&gt;</code></div>
+<div><code>&lt;!ELEMENT phone  - - CDATA&gt;</code></div>
+</blockquote>
+<p>It defines a the formal structure of a very simple
+telephone catalog, consisting of items which contain a name
+and a number. The internal structure of the names and numbers
+is not defined here; from the viewpoint of this DTD, they are
+just character data (CDATA). But the DTD defines that a document
+(here, a phone catalog) consists of an element called
+<code>list</code>, which consists of the tags
+<code>&lt;list&gt</code>
+and
+<code>&lt;/list&gt</code> and a sequence of <code>item</code>
+elements between them. These elements in turn have a defined structure,
+and so on. All the end tags are defined as obligatory.
+Now, suppose we feed the following data to an SGML validator:</p>
+<blockquote>
+<div><code>&lt;!DOCTYPE list [</code></div>
+<div class="indent"><code>&lt;!ELEMENT list   - - (item)+></code></div>
+<div class="indent"><code>&lt;!ELEMENT item   - - (person, phone)></code></div>
+<div class="indent"><code>&lt;!ELEMENT person - - CDATA></code></div>
+<div class="indent"><code>&lt;!ELEMENT phone  - - CDATA> ]></code></div>
+<div><code>&lt;list></code></div>
+<div><code>&lt;item>&lt;person>Liisa&lt;/person>&lt;phone>313&lt;/phone>&lt;/item></code></div>
+<div><code>&lt;item>&lt;person>Jukka&lt;/person>&lt;phone>333&lt;/phone></code></div>
+<div><code>&lt;/list></code></div>
+</blockquote>
+
+<p>You would then get <em>something like</em> the following
+(the format of reporting the error will vary):</p>
+
+<blockquote>
+<ul>
+<li>Line 9, character 7:
+<pre><code class=html>&lt;/list&gt;</code>
+      <strong>^</strong></pre>
+<p>Error: end tag for  <strong class=html>ITEM</strong> omitted; possible causes include a missing end tag,  <a href="http://www.htmlhelp.com/tools/validator/problems.html#nesting">improper nesting</a> of elements, or use of an element where it is not allowed</p></li>
+<li>Line 8, character 1:
+<pre><code class=html>&lt;item&gt;&lt;person&gt;Jukka&lt;/person&gt;&lt;phone&gt;333&lt;/phone&gt;</code>
+<strong>^</strong></pre>
+<p> start tag was here</p></li>
+</ul>
+</blockquote> 
+
+<p>What the error message says is simply that the document does
+not comply with the formal rules that it claims to conform to,
+in the particular detail that the end tag <code>&lt;/item&gt;</code>
+has been omitted but the DTD does not allow such omission.
+The validator gives this message relating to the
+<code>&lt;/list&gt;</code> tag, which is potentially misleading,
+since there is nothing wrong with <em>that</em> tag. The validator
+just expected (on the basis of the DTD) another tag before it.</p>
+<p>The message also refers to the <em>possibility</em> that the
+problem was caused by improper nesting. As so often when programs
+try to be helpful, this is a wrong hint here.</p> 
+
+<p>Note that there is absolutely no HTML in the preceding example.
+Validation is <em>not</em> an HTML matter, except  in the simple sense
+that HTML syntax can be defined in SGML, implying that an
+HTML document together with a DTD can be validated.</p>
+
+<p><small>To confuse things a bit, some validators actually
+think they are always processing HTML documents. This mainly means
+that the wordings of their error messages might reflect this and
+could mislead you if you used them for other purposes.</small></p>
+
+<p><small>To confuse things more, some validators issue various
+<em>warnings</em> based on more or less heuristic checks, not DTDs.
+Useful as such warnings can be, they tend to cause problems in
+understanding the differences and impacts of validation errors and
+other messages.</small></p>
+
+
+<h2 id="doctype">The DOCTYPE confusion</h2>
+<p>In the example above, the DTD was part of the document
+being validated. This is usually not practical, so normally the
+document contains just a <em>reference</em> to a DTD, in the form of
+a so-called DOCTYPE declaration.</p>
+<p>For each official version of HTML, including e.g. the three
+different 
+<a href=
+"http://www.w3.org/TR/html4/struct/global.html#h-7.2"
+>sub-versions of HTML 4.01</a>,
+you will find a corresponding
+DOCTYPE declaration that you can use. You can just put it into
+one or two lines at the start of your document, and use a validator
+to find all the violations of the DTD that there might be in
+your document.</p>
+<p>This would be fine, but great confusion has been caused by
+&#8220;DOCTYPE sniffing&#8221;: browsers have started drawing
+conclusions from the presence or absence of DOCTYPE declarations,
+even paying great attention to their spelling. This is really bad,
+though it does not directly affect validation.
+But for an explanation of the
+confusion as well as some practical con­clu­sions,
+<!-- refer to the document
+<cite><a href=
+"http://gutfeldt.ch/matthias/articles/doctypeswitch.html"
+>Doctype switching and standards compliance: An overview</a></cite>
+by <span lang="de">Matthias Gutfeldt</span>.</p>
+-->
+see e.g.
+<cite><a href=
+"../quirks-mode.html">
+What happens in Quirks Mode?</a></cite></p>
+
+<h2 id="gain">So what do I get from validation?</h2>
+
+<p>It is generally useful to write HTML in a manner that
+complies with published HTML 
+spec­i­fi­ca­tions.
+This gives you
+much better <em>chances</em> of being cross-browser compatible
+and making your pages work on future browsers, too. Browsers don&#8217;t
+always implement all that HTML specifications say, but anything
+<em>beyond</em> the specifications tends to be either very
+browser-specific or at least inconsistently handled by browsers.
+And <em>part</em> of complying with a 
+spec­i­fi­ca­tion is
+complying with the syntax defined by it, the DTD.</p>
+
+<div>Validation helps</div>
+<ul>
+<li>to avoid typos
+<li>to detect that you have misunderstood some syntax rules.
+</ul>
+
+<p class="important">Validation is about catching some syntax errors,
+nothing more. It is useful only if you know the syntax rules
+so that you can see what&#8217;s wrong. Validation does not do any­thing
+that you would not be able to do on your own.
+Validation is useful
+because you, being presumably
+human, are not particularly good at following formal rules
+or checking that they are obeyed.</p>
+
+<p>Thus, a validator does <em>not</em> teach you how to write HTML.
+It just points out mistakes. You are supposed to learn HTML from
+other sources.</p>
+
+<p>Validation 
+tells that the syntax rules are violated. This is mostly just confusing if 
+you don&#8217;t know what those rules 
+<em>are</em>. Thus, to make use of validation, you need
+to learn the syntax of HTML, in the particular variant you use.</p>
+<p>Validation is
+like taking a paper to a secretary and asking him to check in each and 
+every detail that all the formal rules of the Company Regulations are 
+strictly obeyed, marking all violations, and nothing more.
+Would you complain when he does exactly that? Yet many people use
+a  validator (since they have been told to), then start accusing the
+validator for nitpicking or using wrong rules or whatever.</p>
+
+<p class="important">If you really want to understand the formal syntax
+of HTML and to know how to read validator reports, you need to learn
+SGML or XML <em>and</em> to read the applicable DTDs. But there is
+a shortcut that lets you get most of the benefits of validation without
+too much work: Use the excellent 
+<cite><a href="http://www.htmlhelp.com/reference/html40/">HTML&nbsp;4.0
+Reference</a></cite>  
+by the Web Design Group.</p>
+<p>That&#8217;s not the ultimate, authoritative reference, and
+4.0 slightly differs from 4.01, but for the most of it, this
+reference tells you rather understandably what the syntax is.
+The alphabetic list of elements contains links to element descriptions
+with attribute descriptions as well as sections
+&#8220;Contents&#8221; and
+&#8220;Contained in&#8221;, where you can find readable explanations
+of the relevant nesting rules.</p>
+
+<h2 id="good">Valid documents can be wrong</h2>
+
+<p>Validation doesn&#8217;t mean that your pages are good in any
+other sense but the technical sense of not containing violations of
+the DTD. It is quite possible to have a document that passes validation
+but is still in definitive violation of HTML specifications. The DTD
+covers just some aspects, some of the formal aspects. For example,
+an <code>href</code> attribute value is basically just a string,
+as far as the DTD is concerned. Any nonsense like
+<code>href="anything&nbsp;I&nbsp;put&nbsp;here!!¤¤#?"</code> will
+pass and <em>must</em> pass validation, since the DTD is not violated.</p>
+
+<p>Although there is really not much to be gained from using 
+<strong>XHTML</strong> on web pages,
+many people have started using it. 
+Moreover, XHTML has its uses, in conjunction with software that
+can operate on XHTML but not HTML.
+Then it becomes relevant
+that validation means different things for XHTML. The reason is that
+the metalanguage, XML, is considerably less powerful than SGML.
+For example, the XML DTD for XHTML&nbsp;1.0 declares the
+<code>tabindex</code> attribute as CDATA,
+which allows virtually anything. In the SGML DTDs of
+&#8220;old&#8221; HTML,
+the attribute is declared as NUMBER. This means that in
+validating against &#8220;old&#8221; HTML, <code>tabindex="-1"</code>
+is reported as an error (as it is), in XHTML validation it passes.
+On the other hand, XML imposes restrictions that forbid
+constructs that are formally correct in SGML-based HTML but
+not actually supported by browsers, such as the shorthand
+<code>&lt;em/text/</code> for
+<code>&lt;em&gt;text&lt;/em&gt;</code>, and this means
+that XHTML validation is pragmatically more useful 
+in <em>some</em> ways.</p>
+
+<p>Thus, a valid HTML document can be incorrect even in a very technical
+sense of violating the specifications. Naturally it may also trigger
+browser bugs, lack any useful content, contain absurd (though valid)
+markup, and so on. And it will be rendered differently by different 
+browsers, of course; that&#8217;s how things are meant to work.</p>
+
+<p>Besides, there can be reasons to deviate from published DTDs.
+Some people think they need to use <code>&lt;embed&gt;</code>
+markup; I think
+<code>&lt;nobr&gt;</code> is sometimes useful; and so on.
+If you decide to use markup that does not belong to the DTD of any
+published HTML version, you can still make your documents 
+valid in all other aspects. You could even write a DTD of your own
+(mod­i­fied from a public one), though this will require some
+fluency in SGML (or XML). For a simple  example, see my
+<a href="nobr.html#valid">notes on validating documents with
+<code>nobr</code> markup</a>.
+For more information, see the document
+<cite><a href="own-dtd.html">Creating your
+own DTD for HTML validation</a></cite>.</p>
+
+<h2 id="icon">Say <em>no</em> to &#8220;Valid HTML&#8221; icons</h2>
+
+<p>The useful purpose of validation is to get error messages
+and warnings, not a &ldquo;clean report&rsquo;, still less
+to show such a report to others. Unless, of course, those
+others really pay you for it, or have the power to demand
+such a report.</p>
+
+<h3>The icons add nothing to validity</h3>
+<p>It&#8217;s useful to write valid markup, in most cases.
+But it&#8217;s hardly useful to make a noise about it.
+By stating or claiming that a document is valid, you
+do not make it any more valid.</p>
+
+<p>Analogously, it&#8217;s useful to 
+use proper punctuation when you write in English.
+This makes texts somewhat easier to read and understand,
+and it adds to the literary quality a bit.
+There are slightly different styles of punctuation, and you
+should choose one and stick to it.
+But it&#8217;s hardly useful to make a noise thereof.
+
+<h3>The icons are cryptic</h3>
+<p>The majority of web users don&#8217;t create web pages. Even if they
+do, they often do not know much about HTML (or CSS), since they
+use wysiwyg tools or publishing systems that do not involve
+&#8220;manual&#8221; HTML coding.</p>
+<p>Thus, they might even fail to understand the abbreviation
+&#8220;HTML,&#8221; still
+less the various version numbers,
+or they might have just a faint idea of HTML.
+More importantly, the word
+&#8220;valid&#8221; is misunderstood by most people.</p>
+<p>Thus, the icon may look like an enigma to a user.
+Would you like to include an icon like
+&#8220;Checked SGUFDFY&nbsp;42.5!&#8221; onto your pages and expect users to
+decipher that SGUFDFY&nbsp;42.5 means some particular convention
+on punctuation?</p>
+
+<p>No wonder the
+<cite><a href="http://validator.w3.org/docs/help.html">Help and FAQ for the Markup Validator</a></cite> page
+contains, as the first entry, an 
+answer to the question
+&#8220;Help me! I clicked on an icon and ended up on this strange site!&#8221;
+Actually, the question is more informative than the answer.</p>
+
+<h3>The icons are bad propaganda</h3>
+
+<p>People who put &#8220;Valid HTML&#8221; icons on their pages
+presumably have a sincere desire to promote validity and the goals
+behind that. But they forget that for the great majority of users,
+all those validity stamps are just something between line noise
+and obscurity. And even if the Web surfer who sees the icon is herself or
+himself an author, or intends to become one, why would she or he be
+the least inclined into considering validation just because of the
+presence of some validity stamps?</p>
+
+<p>Using the icons for propaganda is a bad move.
+The icons just aren&#8217;t understood at all by most visitors,
+and they are misunderstood by the rest.
+Validation isn&#8217;t
+really among the most important things that authors should learn.
+Most Web pages are invalid, but they have much more serious problems too.</p>
+<p>Concentrating on validity means concentrating on <em>formal</em>
+aspects. If authors will try to do so too early, they will get
+misdirected, and confused. The validators&#8217; error messages
+can be very confusing, and novice authors might find themselves
+trying to make poorly designed page valid, instead of rewriting it.</p>
+
+<h3>Other &#8220;correctness&#8221; icons: say no to them, too</h3>
+<p>It makes more sense 
+to do propaganda for automated checking of <strong>CSS</strong>
+style sheet syntax,
+&#8220;CSS validation&#8221;, which is much more
+relevant due to the differences of HTML and CSS and their processing
+in browsers. However, &#8220;Valid CSS!&#8221; icons are a poor method
+for that, even if we ignore the term confusion. (CSS is not SGML or XML based,
+so &#8220;valid&#8221; is a misleading form here.)
+The abbreviation &#8220;CSS&#8221; is more cryptic than
+&#8220;HTML,&#8221; because it has several interpretations,
+and people actually misunderstand it. A casual visitor may well
+take &#8220;CSS&#8221; as standing for
+Content Scrambling System
+or
+Cross-Site Scripting
+and not Cascading Style sheets.</p>
+
+<p>As regards to declaring compliance to 
+<strong>WAI</strong> guidelines,
+it&#8217;s yet another thing, and quite different. Such compliance
+cannot be checked automatically. More­over, practically all pages
+that claim conformance to WAI guidelines make a false claim thereby.
+There&#8217;s
+more on this in my <cite><a href="../www/acctools.html">Notes on
+some tools for checking and improving Web page accessibility</a></cite>.</p>
+
+<h3>The icons lie to prospective clients</h3>
+<p>It has been said that prospective clients will look
+at the validity and other icons. That is, you, as a person who
+creates Web pages for a living, would miss opportunities since
+potential customers ignore you if they don&#8217;t see the icons.
+I think this grossly overestimates the emphasis that
+clients put on validity. Some clients  may care about the icons,
+but far more will see them as any normal visitor does, as 
+distracting enigmas.</p>
+
+<p class="important">So the prospective
+ client who gets impressed by the icons on
+your pages actually gets impressed because he was
+seriously misled.</p>
+
+<h3>Educated people know that validity claims are often false</h3>
+<p>Moreover, people who know enough about validation are also
+learning that many validity claims are just false. Either the author
+did not actually check validity, or he thought that almost passing
+validation is enough, or&#8212;perhaps most often&#8212;the page
+validated but was edited later and isn&#8217;t valid any more.
+Such things decrease the value of the icons, and pages carrying them,
+even if the page itself happens to validate.</p>
+
+<h3 id="favelet">Making the author&#8217;s life easier</h3>
+<p>People often argue that the icon is useful to the author
+or maintainer of the page. After making some changes, he
+can conveniently click on the icon and get a validation
+report. Note that this means that the icon will be there,
+proclaiming validity, even though the author does not <em>know</em>
+yet whether the page is actually valid.</p>
+<p>This argument is understandable, but it&#8217;s still all wrong.
+It is wrong the pollute one&#8217;s web page with something that
+distracts from the content and may confuse the user, just for some
+assumed convenience to the author.</p>
+<p>Moreover, it is <em>easier</em> to use other tools, since
+they can be installed so that they work for any page, without
+any inserted code on the pages.
+For example, if you use Interner Explorer, you can easily install
+&#8220;favelets,&#8221; which are used via the Favorites menu of the
+browser. You can find them on Tantek Çelik&#8217;s
+<cite><a href="http://tantek.com/favelets/">Favelets</a></cite> page, or you can just cut
+click on the following pseudo-link with the right-hand button of the mouse
+and select &#8220;Add to Favorites&#8221;:<br>
+<code><a href="javascript:void(document.location='http://validator.w3.org/check?uri='+escape(document.location))">javascript:void(document.location=<wbr>'http://validator.w3.org/<wbr>check?<wbr>uri='<wbr>+escape(document.location))</a></code>
+</p>
+
+<h3>The W3C is just wrong here</h3>
+<p>The reputation, or assumed reputation, of the validity icons is
+actually based on the common assumption that the icons are
+<strong>seals of approval</strong> by the W3C. Of course, the W3C
+would be the first to say that they aren&#8217;t. But the W3C is
+factually contributing to the common mis­con­cep­tion, since the W3C
+promotes the use of the icons, asks (or actually requires) authors
+to make them links to W3C pages, and includes its logo into the
+icons.</p>
+<p>The W3C has promoted the use of the icons so long that
+we cannot expect a change of policy. People at the W3C work with web-related
+specifications and technologies, so it is understandable that they
+overestimate their meaning as well as users&#8217; ability and willingness
+to understand validity (or &#8220;validity&#8221;) issues. But <em>you</em>
+should know better.</p>
+
+<h3>There is no excuse now</h3>
+
+<p>If you do not know what the icons really and imply,
+you should not even think about using them. And if you do know that,
+as you probably know now, having read this far,
+you have no excuse for having the icons on your pages.
+Using them,
+you would be sending a message that will
+be either misunderstood or not understood at all by the
+vast majority of people. And you would know this.</p>
+
+<p>Sorry, now that you have been explicitly told this, you have lost
+your innocence. You cannot plead ignorance any more. If you keep using
+the icons, you now know that you are <em>in­ten­tion­al­ly abusing
+other people&#8217;s misconceptions</em> for the purpose of your personal
+gain, or for your company&#8217;s profits,
+or for the purpose of making some propaganda&#8212;maybe for a noble
+cause, but the propaganda will be ineffective or it will
+work against the purpose.</p>
+
+<h3>The &#8220;check mark&#8221; is a failure mark to some people</h3>
+<p><img alt="" title=
+"A check mark, used to indicate failure, and a correctness (OK) mark as used in Finland"
+src="ok.png" style="margin-right:0.2em; float: left"
+width="100" height="70">
+The icons contain a check mark, a v-like symbol.
+It is widely understood as indicating that something has been checked
+and approved (or, in other contexts like in checkboxes,
+that something has been selected). But it is 
+<em>not culturally neutral</em>.
+The
+<a href="http://www.cenorm.be">CEN</a> Workshop Agreement 
+<cite><a href=
+"http://www.cen.eu/cen/Sectors/Sectors/ISSS/CWAdownload/Pages/Eur%20Cult%20Spec%20IT%20Req.aspx"
+lang="en" hreflang="en">European Culturally Specific ICT Requirements</a></cite>
+explicitly mentions:
+&#8220;Special symbols are often used to mark both correct­ness
+ and an error (and a check mark in one culture
+can have the opposite meaning in another culture).&#8221;
+In Finland, the &#8220;check mark&#8221; traditionally indicates 
+<strong>disapproval</strong>, e.g. in exam papers as a mark that
+an answer has been checked and found wrong. (The cor­rect­ness mark
+resembles a percent sign, and could be identified with the
+Unicode character <span class="charname">commercial minus sign</span>.)
+According to the
+<a href=
+"http://www.unicode.org/versions/Unicode4.0.0/"
+>Unicode Standard&nbsp;4.0</a>
+(<a href=
+"http://www.unicode.org/versions/Unicode4.0.0/ch06.pdf#page=15"
+type="application/pdf"
+>p.&nbsp;160</a>),
+the situation is the same in &#8220;a&nbsp;number of other
+European countries&#8221;.
+People are getting used to the meaning
+of a check mark
+as an approval symbol, due to the effect of information technology,
+but this means unstability and confusion rather than completed
+cultural assimilation.</p>
+
+<h3 id="referer">The icon link may fail miserably</h3>
+<p>The &#8220;Valid HTML&#8221; icon is <em>required</em>
+to be a link to the W3C validator (see
+<cite><a href=
+"http://validator.w3.org/docs/help.html#icon-license">
+License and Guidelines for usage of the "valid" icons</a></cite> on
+the
+<cite><a href="http://validator.w3.org/docs/help.html">Help and FAQ for the Markup Validator</a></cite> page).
+When a document passes validation, the validator says:</p>
+<blockquote class="par1">
+<p>To show your readers that you have taken the care to create an interoperable Web page, you may display this icon on any page that validates.
+Here is the HTML you could use to add this icon to your Web page:</p>
+</blockquote>
+
+<p>(The statement about &#8220;interoperable Web page&#8221; is
+very, very wrong. Validity does not guarantee interoperability, of course.)</p>
+
+<p>This is followed by versions of the icon
+ and the HTML markup (in small print in
+grey text, setting a very bad example) inserting the icon.
+The markup makes the icon a link, though a style sheet on the W3C
+pages prevents it from looking like a link, by removing the common
+default blue border (against the sound principle that
+<a href="../www/links.html">Links Want To Be Links</a>).
+The link has the URL<br>
+<code><a href="http://validator.w3.org/check?uri=referer">http://validator.w3.org/check?uri=referer</a></code><br>
+which means that when the link is followed, the browser is expected to
+send the address of the page in the
+<code>Referer</code> header, among the
+<a href="../http.html">HTTP headers</a>.</p>
+<p>And this may simply fail. A browser might be configured not to send
+the <code>Referer</code> header, or to send a fake header, for privacy reasons.
+This is not common, but when it happens, the results are confusing.
+The W3C validator sends back an error message page that is tech­ni­cal­ly
+correct but understandable to a small fraction of people only.</p>
+
+<blockquote>
+    <div id="result">
+          <h2 id="results" class="invalid">Sorry! This document can not be checked.</h2>
+
+
+        <h2><strong>No Referer header found!</strong></h2>
+        <p>
+          You have requested we check the referring page, but your browser did
+          not send the HTTP "Referer" header field. This can be for several
+          reasons, but most commonly it is because your browser does not
+          know about this header, has been configured not to send one, or is
+          behind a proxy or firewall that strips it out of the request before
+          it reaches us.
+        </p>
+        <p>This is <em>not</em> an error in the referring page!</p>
+        <p class="last">
+          Please use the form interface on the
+          <a href="http://validator.w3.org/">Validator Home Page</a> to check the
+          page by URL.
+        </p>
+
+</div>
+</blockquote>
+
+<p>Web users do not usually prevent their browser from
+sending the <code>Referer</code> header.
+If they do, they can probably understand the error message and
+take some corrective action.
+How­ever, some experienced user may have configured the browser of a relative
+or a friend &#8220;to protect privacy&#8221;
+without explaining the implications, or a user might be used a public
+computer where such &#8220;paranoic&#8221; settings are in effect.
+Most web pages do not need the <code>Referer</code> header,
+so people don&#8217;t usually see problems&#8212;but when they click on
+  a &#8220;Valid HTML&#8221; icon, confusion is created.</p>
+
+<p>Moreover, the error message is misleading, since <em>common</em>
+reasons to the problem include the following
+(see the document <cite><a href="http://support.microsoft.com/kb/178066"
+>Internet Explorer Does Not Send Referer Header in Unsecured Situations</a></cite> by Microsoft):</p>
+<ul>
+<li> Working with a page <em>local</em> to the computer, e.g.
+a locally saved web page.</li>
+<li> Using a page that has been sent using the HTTPS protocol.</li>
+</ul>
+
+
+<h2>Validity icons are unprofessional</h2>
+<p>Jens Meiert has written
+the document <cite><a href=
+"http://meiert.com/en/blog/20070309/valid-css-and-similar-claims-are-unprofessional/"
+>&#8220;Valid CSS&#8221; and Similar Claims Are Unprofessional</a></cite>.
+His argument is that validity is a self-evident requirement.
+This is basically correct, even though most web sites contains syntax errors
+(validity errors). It is pointless to claim that your page lacks syntax
+errors, just as it would be pointless for a surgeon to explicitly claim
+that his hands are clean.</p>
+
+<h2 id="final">Some final notes: why do I nitpick about
+&#8220;validation&#8221;?</h2>
+<p>The word &#8220;validation&#8221; and its relatives are used
+for a large set of different meanings, even in the Web context.
+There&#8217;s (officially!) a &#8220;CSS validator&#8221;,
+and there&#8217;s a commercial HTML checker that keeps calling itself
+ &#8220;CSE validator&#8221; (despite being a checker that performs
+mixed operations, partly on a rather subjective basis),
+and &#8220;form validation&#8221; is commonly
+used about checking form data by some criteria, etc.
+So am I defending a lost cause when I say that
+&#8220;validation&#8221; and
+&#8220;validator&#8221; should be used as relating to
+SGML or XML validation only?</p>
+
+<p>Maybe it is a lost cause. But we all lose then. Either we fall
+into confusion, or we use some <em>other</em> verbal expressions
+that serve the purpose of saying what we mean. That would mostly mean
+the alternative &#8220;SGML or XML validation&#8221;. This would
+be inferior to just using the word &#8220;validation&#8221;,
+so that e.g. &#8220;checking&#8221; would convey the general and
+vague idea. In particular, you would then choose carefully whether you
+say
+&#8220;SGML validation&#8221; or
+&#8220;XML validation&#8221; or perhaps
+&#8220;SGML or XML validation&#8221;, with an explanation of the
+difference between the two, which is not difficult except if you
+want to tell the truth.</p> 
+
+<p><small>Besides, in the XML context, it is essential to distinguish
+between two kinds of formal correctness, &#8220;well-formed&#8221; 
+and &#8220;valid&#8221;. This makes it increasingly important to
+understand and to remember that in the markup context,
+the word &#8220;valid&#8221; and its relatives are technical terms,
+not to be confused with correctness in general.</small></p>
+
+<h2 id="html5">But what about HTML5?</h2>
+<p>HTML5 is now a Candidate Recommendation from the W3C.
+<a href=
+"http://www.w3.org/TR/html5/">HTML5 RC</a> differs from
+the WHATWG 
+&#8220;<a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/">
+HTML
+Living Standard</a>. The latter is often called HTML5, too, and
+originally the two documents were close to each other, but
+they are diverging, and there is no public document on the differences now.</p>
+<p>HTML5 is neither SGML-based nor XML-based, though allows a syntactic form
+that conforms to XML rules and is sometimes called XHTML5.
+HTML5 has its own syntax rules described in prose,
+which is rather technical and even formal, but not DTD-based.
+It is also rather impractical to try to defined a DTD for it,
+as my 
+<a href="../html5-dtd.html">
+attempt at an HTML5 DTD</a> shows:
+too many limitations, too tricky, and the DTD would need to be so permissive that many syntax errors would go uncaught.</p>
+<p>So no validation for HTML5. Yet, both
+<a href="http://validar.nu">validator.nu</a>
+and
+<a href="http://validator.w3.org">validator.w3.org</a>
+perform &#8220;HTML5 validation&#8221; (in addition
+to validating HTML). The point is that these programs, which
+are closely interconnected but differ in a manner that has not been
+publicly documented, are really polymorphic: when 
+a document is submitted to them as HTML5, they
+switch to a completely different mode of operation.
+This means checking the syntax by HTML5 rules, quite independently
+of any DTD.</p>
+<p>There is no published document of the specific 
+<nobr>variant(s)</nobr> of HTML5 that they check against.
+But it seems that they try use the
+<a href="http://www.w3.org/html/wg/drafts/html/master/">
+HTML 5.1 Nightly</a> as the basis but are not really
+synchronized with it.</p>
+<p>This means that a document may get
+the congratulations
+&ldquo;This document was successfully checked as HTML5!&rdquo;
+today 
+and the message
+&ldquo;Errors found while checking this document as HTML5!&rdquo;
+tomorrow, just because someone changed the rules.</p>
+
+<hr title="Information about this document">
+<div class="footer">
+<div><span class="icon">Not Valid!</span>
+This page is intentionally not valid HTML. Not so much as a protest
+to false or misleading claims on validity but as a simple measure
+against DOCTYPE sniffing.
+The simplest way to promote more standards-compliant processing
+of a document by browsers is to use an HTML 4.01 Strict DOCTYPE,
+no matter what markup is actually used in the document.
+It is ethical to fool browsers that way, since they have been intentionally
+designed to do the wrong thing with a DOCTYPE (and unintentionally 
+made to do the wrong thing in differing wrong ways). 
+</div>
+
+<div><a title=
+"ISO 8601, the date and time representation standard"
+HREF="../iso8601.html" HREFLANG="en-US">
+Date</a> of creation:
+2003-03-13. Last update: 2013-04-11.
+</div>
+<div>This page belongs
+to section
+<cite><a href="../www.html">Web authoring and surfing</a></cite> of
+the free information site
+<cite><a href="../indexen.html">IT and communication</a></cite>
+by
+<a href="../personal.html" title=
+"Jukka K. Korpela, an IT generalist and specialist (personal home page)"
+><span lang="fi">Jukka</span> "Yucca" <span lang="fi">Korpela</span></a>.
+</div>
+</div>
+</body>
+</html>
